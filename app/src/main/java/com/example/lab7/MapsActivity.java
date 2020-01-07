@@ -314,17 +314,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void saveTasksToJson(){
         Gson gson = new Gson();
-        String listJson = gson.toJson(markerList);
-        FileOutputStream outputStream;
-        try {
-            outputStream = openFileOutput(TASKS_JSON_FILE, MODE_PRIVATE);
-            FileWriter writer = new FileWriter(outputStream.getFD());
-            writer.write(listJson);
-            writer.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e){
-            e.printStackTrace();
+        for (int i=0; i<markerList.size(); i++) {
+            String listJson = gson.toJson(markerList.get(i).getPosition());
+            FileOutputStream outputStream;
+            try {
+                outputStream = openFileOutput(TASKS_JSON_FILE, MODE_PRIVATE);
+                FileWriter writer = new FileWriter(outputStream.getFD());
+                writer.write(listJson);
+                writer.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -347,19 +349,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             reader.close();
             readJson = builder.toString();
-            Type collectionType = new TypeToken<List<Marker>>() {
+            Type collectionType = new TypeToken<LatLng>() {
             }.getType();
-            List<Marker> o = gson.fromJson(readJson, collectionType);
-            if(o != null) {
-                //markerList.clear();
-                for(Marker marker : o){
-                    mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(marker.getPosition().latitude, marker.getPosition().longitude))
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map))
-                            .alpha(0.8f)
-                            .title("1"));
-                }
-            }
+            LatLng o = gson.fromJson(readJson, collectionType);
+            markerList.clear();
+            Marker marker1 = mMap.addMarker(new MarkerOptions()
+                    .position(o)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map))
+                    .alpha(0.8f)
+                    .title("1"));
+            markerList.add(marker1);
+
         }catch (FileNotFoundException e){
             e.printStackTrace();
         }catch (IOException e){
