@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/mainView">
@@ -49,6 +47,9 @@
         android:layout_marginBottom="56dp"
         android:clickable="true"
         android:src="@android:drawable/ic_menu_info_details"
+        android:background="#9C1717"
+        app:maxImageSize="32dp"
+        android:tint="@android:color/white"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/fab_x" />
@@ -62,6 +63,9 @@
         android:clickable="true"
         android:src="@android:drawable/ic_delete"
         android:visibility="invisible"
+        android:backgroundTint="@color/colorAccent"
+        android:tint="@android:color/white"
+        app:maxImageSize="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -70,7 +74,7 @@
         android:layout_width="281dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:background="#B42E2E"
+        android:background="#9C1717"
         android:gravity="center_horizontal"
         android:text="TextView"
         android:textColor="#FFFF"
@@ -84,7 +88,7 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:background="#B42E2E"
+        android:background="#9C1717"
         android:gravity="center_horizontal"
         android:paddingTop="8dp"
         android:paddingBottom="10dp"

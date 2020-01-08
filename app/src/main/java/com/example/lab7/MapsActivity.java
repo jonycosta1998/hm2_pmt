@@ -1,14 +1,9 @@
 package com.example.lab7;
 
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,6 +15,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentActivity;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -30,33 +28,21 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,16 +61,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static float z;
 
     //memory
-
     private final String TASKS_JSON_FILE = "tasks.json";
 
-
-
-
-
-
-
-
+    //maps
     private static final int MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 101;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
@@ -105,33 +84,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         markerList = new ArrayList<>();
 
-        //sensores
+        //sensors
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
-        mSensorManager.registerListener(this,Sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, Sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         Button clearButton = (Button) findViewById(R.id.button);
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                for (int i=0; i<markerList.size(); i++) {
-                    markerList.get(i).remove();
-                }
+                markerList.clear();
+                mMap.clear();
             }
         });
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
-        if(Sensor != null)
+        if (Sensor != null)
             mSensorManager.unregisterListener(this, Sensor);
     }
 
     private void stopLocationUpdates() {
-        if(locationCallback != null)
+        if (locationCallback != null)
             fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
@@ -180,31 +157,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         restoreFromJson();
     }
 
-
-
-
     @Override
     public void onMapLongClick(LatLng latLng) {
-        float distance = 0f;
-
-        if(markerList.size() > 0) {
-            Marker lastMarker = markerList.get(markerList.size() - 1);
-            float[] tmpDis = new float[3];
-
-            Location.distanceBetween(lastMarker.getPosition().latitude, lastMarker.getPosition().longitude,
-                    latLng.latitude, latLng.longitude, tmpDis);
-            distance = tmpDis[0];
-
-        }
 
         Marker marker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(latLng.latitude, latLng.longitude))
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map))
-                .alpha(0.8f)
-                .title(String.format("Position: (%.2f, %.2f) Distance: %.2f", latLng.latitude, latLng.longitude, distance)));
+                .alpha(0.8f));
 
         markerList.add(marker);
-
     }
 
     @Override
@@ -212,18 +173,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         final FloatingActionButton fab_dot = (FloatingActionButton) findViewById(R.id.fab_dot);
         final FloatingActionButton fab_x = (FloatingActionButton) findViewById(R.id.fab_x);
-        fab_dot.show();
-        fab_x.show();
+
+        ViewAnimation.showIn(fab_dot);
+        ViewAnimation.showIn(fab_x);
 
         fab_x.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fab_dot.hide();
-                fab_x.hide();
+                ViewAnimation.init(fab_dot);
+                ViewAnimation.init(fab_x);
 
-                TextView mytxt=(TextView) findViewById(R.id.textView);
+                ViewAnimation.showOut(fab_dot);
+                ViewAnimation.showOut(fab_x);
+
+                TextView mytxt = (TextView) findViewById(R.id.textView);
                 mytxt.setVisibility(View.INVISIBLE);
-
             }
         });
 
@@ -233,7 +197,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("Acceleration: \n x: ").append(x).append("  y: ")
                         .append(y);
-                TextView mytxt=(TextView) findViewById(R.id.textView);
+                TextView mytxt = (TextView) findViewById(R.id.textView);
                 mytxt.setText(stringBuilder);
                 mytxt.setVisibility(View.VISIBLE);
             }
@@ -253,12 +217,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationClient.requestLocationUpdates(mLocationRequest, locationCallback, null);
     }
 
-    private void createLocationCallback(){
+    private void createLocationCallback() {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                if(locationResult != null){
-                    if(gpsMarker != null)
+                if (locationResult != null) {
+                    if (gpsMarker != null)
                         gpsMarker.remove();
                     Location location = locationResult.getLastLocation();
                     gpsMarker = mMap.addMarker(new MarkerOptions()
@@ -273,11 +237,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
     }
 
-    public void zoomInClick(View v){
+    public void zoomInClick(View v) {
         mMap.moveCamera(CameraUpdateFactory.zoomIn());
     }
 
-    public void zoomOutClick(View v){
+    public void zoomOutClick(View v) {
         mMap.moveCamera(CameraUpdateFactory.zoomOut());
     }
 
@@ -305,38 +269,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-        if(Sensor != null)
+        if (Sensor != null)
             mSensorManager.registerListener(this, Sensor, 100000);
     }
 
 
-    private void saveTasksToJson(){
+    private void saveTasksToJson() {
         Gson gson = new Gson();
-        for (int i=0; i<markerList.size(); i++) {
-            String listJson = gson.toJson(markerList.get(i).getPosition());
-            FileOutputStream outputStream;
-            try {
-                outputStream = openFileOutput(TASKS_JSON_FILE, MODE_PRIVATE);
-                FileWriter writer = new FileWriter(outputStream.getFD());
-                writer.write(listJson);
-                writer.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e){
-                e.printStackTrace();
-            }
+        ArrayList<LatLng> positions = new ArrayList<>();
+        for (int i = 0; i < markerList.size(); i++) {
+            positions.add(markerList.get(i).getPosition());
+        }
+        String listJson = gson.toJson(positions);
+        FileOutputStream outputStream;
+        try {
+            outputStream = openFileOutput(TASKS_JSON_FILE, MODE_PRIVATE);
+            FileWriter writer = new FileWriter(outputStream.getFD());
+            writer.write(listJson);
+            writer.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void restoreFromJson(){
+    public void restoreFromJson() {
         FileInputStream inputStream;
         int DEFAULT_BUFFER_SIZE = 10000;
         Gson gson = new Gson();
         String readJson;
 
-        try{
+        try {
             inputStream = openFileInput(TASKS_JSON_FILE);
             FileReader reader = new FileReader(inputStream.getFD());
             char[] buf = new char[DEFAULT_BUFFER_SIZE];
@@ -344,77 +310,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             StringBuilder builder = new StringBuilder();
             while ((n = reader.read(buf)) >= 0) {
                 String tmp = String.valueOf(buf);
-                String substring = (n<DEFAULT_BUFFER_SIZE) ? tmp.substring(0, n) : tmp;
+                String substring = (n < DEFAULT_BUFFER_SIZE) ? tmp.substring(0, n) : tmp;
                 builder.append(substring);
             }
             reader.close();
             readJson = builder.toString();
-            Type collectionType = new TypeToken<LatLng>() {
-            }.getType();
-            LatLng o = gson.fromJson(readJson, collectionType);
-            markerList.clear();
-            Marker marker1 = mMap.addMarker(new MarkerOptions()
-                    .position(o)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map))
-                    .alpha(0.8f)
-                    .title("1"));
-            markerList.add(marker1);
 
-        }catch (FileNotFoundException e){
+            /*Type collectionType = new TypeToken<ArrayList>() {
+            }.getType();
+            ArrayList o = gson.fromJson(readJson, collectionType);
+            markerList.clear();
+            */
+            Type collectionType = new TypeToken<ArrayList<LatLng>>() {
+            }.getType();
+            ArrayList<LatLng> o = gson.fromJson(readJson, collectionType);
+            markerList.clear();
+
+            for (int i = 0; i < o.size(); i++) {
+                Marker marker1 = mMap.addMarker(new MarkerOptions()
+                        .position(o.get(i))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map))
+                        .alpha(0.8f));
+                markerList.add(marker1);
+            }
+
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    /*
-    public class MarkerClass {
-        int id;
-        double latitude;
-        double longitude;
-
-
-
-        List<MarkerClass> myList = new ArrayList<Marker>();
-
-
-
-        // Constructor Declaration of Class
-        public MarkerClass(int id, double latitude,
-                   double longitude) {
-            this.id = id;
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
-
-        public int getId()
-        {
-            return id;
-        }
-
-        public double getLatitude()
-        {
-            return latitude;
-        }
-
-        // method 3
-        public double getLongitude()
-        {
-            return longitude;
-        }
-
-        @Override
-        public String toString()
-        {
-            return(this.getId()+
-                    "\n" +
-                    this.getLatitude()+"\n" + this.getLongitude());
-        }
-    } */
+    @Override
+    protected void onStop() {
+        saveTasksToJson();
+        super.onStop();
+    }
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
+
         super.onDestroy();
-        saveTasksToJson();
+
     }
 }
